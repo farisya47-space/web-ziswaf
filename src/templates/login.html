@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - Sistem Keuangan Madarijus Salikin</title>
+<link href="https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@100..900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style type="text/tailwindcss">
+  :root {
+    --primary: #004b72;
+    --primary-hover: #003a59;
+    --foreground: #080C1A;
+    --secondary: #6A7686;
+    --muted: #EFF2F7;
+    --border: #F3F4F3;
+    --error: #ED6B60;
+    --success: #30B22D;
+    --font-sans: 'Lexend Deca', sans-serif;
+  }
+  @theme inline {
+    --color-primary: var(--primary);
+    --color-primary-hover: var(--primary-hover);
+    --color-foreground: var(--foreground);
+    --color-secondary: var(--secondary);
+    --color-muted: var(--muted);
+    --color-border: var(--border);
+    --color-error: var(--error);
+    --color-success: var(--success);
+    --font-sans: var(--font-sans);
+  }
+  @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+  .shake { animation: shake 0.4s; }
+</style>
+</head>
+<body class="font-sans bg-gradient-to-br from-muted via-white to-primary/5 min-h-screen flex items-center justify-center p-5">
+
+<div class="w-full max-w-md">
+  <div class="bg-white/80 backdrop-blur-xl rounded-3xl border border-border shadow-2xl overflow-hidden">
+    <div class="p-8 md:p-10">
+      <div class="flex flex-col items-center mb-8">
+        <img src="img/logo-yayasan.png" alt="Logo Yayasan" class="w-20 h-20 mb-4 object-contain">
+        <h1 class="font-bold text-3xl text-foreground">Madarijus Salikin</h1>
+        <p class="text-sm text-secondary mt-2">Aplikasi Laporan Keuangan</p>
+      </div>
+
+      <div id="error-message" class="hidden mb-5 p-4 bg-error/10 border border-error/20 rounded-xl flex items-center gap-3">
+        <i data-lucide="alert-circle" class="size-5 text-error flex-shrink-0"></i>
+        <p class="text-sm text-error font-medium"></p>
+      </div>
+
+      <form id="login-form" class="flex flex-col gap-5">
+        <div class="flex flex-col gap-2">
+          <label for="username" class="text-sm font-semibold text-foreground">Username</label>
+          <div class="relative">
+            <i data-lucide="user" class="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-secondary"></i>
+            <input id="username" type="text" placeholder="Masukkan username" autocomplete="username" required class="w-full pl-12 pr-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white transition-all text-sm">
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="password" class="text-sm font-semibold text-foreground">Password</label>
+          <div class="relative">
+            <i data-lucide="lock" class="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-secondary"></i>
+            <input id="password" type="password" placeholder="Masukkan password" autocomplete="current-password" required class="w-full pl-12 pr-12 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white transition-all text-sm">
+            <button type="button" onclick="togglePassword()" class="absolute right-4 top-1/2 -translate-y-1/2 text-secondary hover:text-foreground transition-colors">
+              <i id="eye-icon" data-lucide="eye" class="size-5"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- <div class="flex items-center justify-between text-sm">
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <input type="checkbox" class="w-4 h-4 rounded border-border text-primary focus:ring-2 focus:ring-primary cursor-pointer">
+            <span class="text-secondary group-hover:text-foreground transition-colors">Ingat saya</span>
+          </label>
+          <a href="#" class="text-primary hover:text-primary-hover font-medium transition-colors">Lupa password?</a>
+        </div> -->
+
+        <button type="submit" class="w-full bg-gradient-to-r from-primary to-primary-hover text-white rounded-xl py-3.5 font-bold hover:shadow-xl hover:shadow-primary/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer mt-2 flex items-center justify-center gap-2">
+          <span id="btn-text">Masuk</span>
+          <i id="btn-icon" data-lucide="log-in" class="size-5"></i>
+          <div id="btn-loader" class="hidden size-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+        </button>
+      </form>
+    </div>
+  </div>
+  
+  <p class="text-center text-sm text-secondary mt-6">© 2026 Madarijus Salikin. All rights reserved.</p>
+</div>
+
+<script>
+  lucide.createIcons();
+
+  function togglePassword() {
+    const input = document.getElementById('password');
+    const icon = document.getElementById('eye-icon');
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.setAttribute('data-lucide', 'eye-off');
+    } else {
+      input.type = 'password';
+      icon.setAttribute('data-lucide', 'eye');
+    }
+    lucide.createIcons();
+  }
+
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const errorMsg = document.getElementById('error-message');
+    const btnText = document.getElementById('btn-text');
+    const btnIcon = document.getElementById('btn-icon');
+    const btnLoader = document.getElementById('btn-loader');
+    const form = document.getElementById('login-form');
+    
+    errorMsg.classList.add('hidden');
+    
+    if (!username || !password) {
+      showError('Username dan password harus diisi');
+      return;
+    }
+    
+    btnText.textContent = 'Memproses...';
+    btnIcon.classList.add('hidden');
+    btnLoader.classList.remove('hidden');
+    
+    // Simulasi login (ganti dengan API call)
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Demo: username "admin" password "admin123"
+    if (username === 'admin' && password === 'admin123') {
+      btnText.textContent = 'Berhasil!';
+      btnLoader.classList.add('hidden');
+      btnIcon.setAttribute('data-lucide', 'check-circle');
+      btnIcon.classList.remove('hidden');
+      lucide.createIcons();
+      setTimeout(() => window.location.href = 'finance_dashboard.html', 500);
+    } else {
+      showError('Username atau password salah');
+      form.classList.add('shake');
+      setTimeout(() => form.classList.remove('shake'), 400);
+      btnText.textContent = 'Masuk';
+      btnLoader.classList.add('hidden');
+      btnIcon.setAttribute('data-lucide', 'log-in');
+      btnIcon.classList.remove('hidden');
+      lucide.createIcons();
+    }
+  });
+
+  function showError(message) {
+    const errorMsg = document.getElementById('error-message');
+    errorMsg.querySelector('p').textContent = message;
+    errorMsg.classList.remove('hidden');
+    lucide.createIcons();
+  }
+</script>
+
+</body>
+</html>

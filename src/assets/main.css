@@ -1,0 +1,22 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-primary: #004b72;
+  --color-primary-hover: #003a59;
+  --color-foreground: #080c1a;
+  --color-secondary: #6a7686;
+  --color-muted: #eff2f7;
+  --color-border: #f3f4f3;
+  --color-success: #30b22d;
+  --color-error: #ed6b60;
+  --color-warning: #fed71f;
+  --font-family-sans: 'Lexend Deca', sans-serif;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
