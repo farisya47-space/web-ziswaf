@@ -1,24 +1,37 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import api from '@/utils/axios'
 
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref(null)
-  const isAuthenticated = ref(false)
+  const user = ref(JSON.parse(localStorage.getItem('user')) || null)
+  const token = ref(localStorage.getItem('token') || null)
 
-  function login(credentials) {
-    // Simulasi login
-    if (credentials.username === 'admin' && credentials.password === 'admin') {
-      user.value = { name: 'Admin Keuangan', role: 'Administrator' }
-      isAuthenticated.value = true
-      return true
+  const isLoggedIn = computed(() => !!token.value)
+
+  async function login(credentials) {
+    const response = await api.post('/login', credentials)
+    token.value = response.data.access_token
+    localStorage.setItem('token', token.value)
+    await fetchProfile()
+    return true
+  }
+
+  async function fetchProfile() {
+    const response = await api.get('/profile')
+    user.value = response.data.user
+    localStorage.setItem('user', JSON.stringify(user.value))
+  }
+
+  async function logout() {
+    try {
+      await api.post('/logout')
+    } finally {
+      user.value = null
+      token.value = null
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
     }
-    return false
   }
 
-  function logout() {
-    user.value = null
-    isAuthenticated.value = false
-  }
-
-  return { user, isAuthenticated, login, logout }
+  return { user, token, isLoggedIn, login, logout, fetchProfile }
 })

@@ -115,17 +115,30 @@ async function handleLogin() {
 
   isLoading.value = true
 
-  await new Promise((resolve) => setTimeout(resolve, 1500))
+  try {
+    await authStore.login(form.value)
 
-  if (authStore.login(form.value)) {
     isSuccess.value = true
     isLoading.value = false
+
     setTimeout(() => router.push('/dashboard'), 500)
-  } else {
-    errorMessage.value = 'Username atau password salah'
+  } catch (error) {
+    console.log('Error status:', error.response?.status)
+    console.log('Error message:', error.message)
+    console.log('Full error:', error)
     isLoading.value = false
     isShaking.value = true
     setTimeout(() => (isShaking.value = false), 400)
+
+    if (error.response?.status === 401) {
+      errorMessage.value = 'Username atau password salah'
+    } else if (error.response?.status === 422) {
+      const errors = error.response.data.errors
+      const firstError = Object.values(errors)[0][0]
+      errorMessage.value = firstError
+    } else {
+      errorMessage.value = 'Terjadi kesalahan, coba lagi'
+    }
   }
 }
 </script>

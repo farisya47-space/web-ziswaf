@@ -1,25 +1,38 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import api from '@/utils/axios'
 
 export const useTransactionStore = defineStore('transaction', () => {
-  const incomes = ref([])
-  const expenses = ref([])
+  const transactions = ref([])
+  const meta = ref({})
+  const loading = ref(false)
 
-  function generateTrxNumber(type) {
-    const timestamp = Date.now().toString().slice(-6)
-    const random = Math.floor(Math.random() * 1000)
-      .toString()
-      .padStart(3, '0')
-    return `${type}${timestamp}${random}`
+  async function fetchTransactions(type, params = {}) {
+    loading.value = true
+    transactions.value = []
+    meta.value = {}
+    try {
+      const { data } = await api.get(`/${type}`, { params })
+      transactions.value = data.data
+      meta.value = data.meta ?? {}
+    } finally {
+      loading.value = false
+    }
   }
 
-  function addIncome(data) {
-    incomes.value.push({ ...data, id: generateTrxNumber('IN') })
+  async function createTransaction(type, payload) {
+    const { data } = await api.post(`/${type}`, payload)
+    return data
   }
 
-  function addExpense(data) {
-    expenses.value.push({ ...data, id: generateTrxNumber('OUT') })
+  async function updateTransaction(type, id, payload) {
+    const { data } = await api.put(`/${type}/${id}`, payload)
+    return data
   }
 
-  return { incomes, expenses, addIncome, addExpense, generateTrxNumber }
+  async function deleteTransaction(type, id) {
+    await api.delete(`/${type}/${id}`)
+  }
+
+  return { transactions, meta, loading, fetchTransactions, createTransaction, updateTransaction, deleteTransaction }
 })

@@ -8,12 +8,11 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: () => import('@/views/LoginView.vue'),
-      meta: { layout: 'auth' },
+      meta: { guestOnly: true, layout: 'auth' },
     },
     {
       path: '/',
-      redirect: '/dashboard',
-      meta: { requiresAuth: true },
+      redirect: '/login',
     },
     {
       path: '/dashboard',
@@ -51,17 +50,24 @@ const router = createRouter({
       component: () => import('@/views/ProfileView.vue'),
       meta: { requiresAuth: true },
     },
+    {
+      path: '/activity-logs',
+      name: 'activity-logs',
+      component: () => import('@/views/ActivityLogView.vue'),
+      meta: { requiresAuth: true, title: 'Log Aktivitas' },
+    },
   ],
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to) => {
   const authStore = useAuthStore()
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    next('/login')
-  } else if (to.path === '/login' && authStore.isAuthenticated) {
-    next('/dashboard')
-  } else {
-    next()
+
+  if (to.meta.requiresAuth && !authStore.isLoggedIn) {
+    return { name: 'login' }
+  }
+
+  if (to.meta.guestOnly && authStore.isLoggedIn) {
+    return { name: 'dashboard' }
   }
 })
 
