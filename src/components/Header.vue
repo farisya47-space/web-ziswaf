@@ -10,6 +10,10 @@
     </button>
     <h2 class="hidden lg:block font-bold text-2xl">{{ title }}</h2>
     <div class="flex items-center gap-3">
+      <img src="/logo-yayasan.png" alt="Logo" class="block lg:hidden w-11 h-11 object-contain" />
+      <h1 class="hidden md:block lg:hidden font-semibold text-xl">Madarijus Salikin</h1>
+    </div>
+    <div class="flex items-center gap-3">
       <!-- Mobile avatar button -->
       <div class="relative md:hidden">
         <button
