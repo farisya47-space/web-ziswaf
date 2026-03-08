@@ -305,7 +305,7 @@ async function editTransaction(trx) {
   serverError.value = ''
   await categoryStore.fetchCategories({ type: 'expense', per_page: 100 })
   currentView.value = 'edit'
-  displayAmount.value = form.value.amount ? form.value.amount.toString() : ''
+  displayAmount.value = form.value.amount ? formatAmount(form.value.amount) : ''
 }
 
 async function saveTransaction() {

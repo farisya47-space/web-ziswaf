@@ -10,8 +10,8 @@
         </div>
         <div>
           <p class="text-sm text-secondary mb-1">Total Penerimaan</p>
-          <p class="font-bold text-2xl text-foreground">Rp 85.500.000</p>
-          <p class="text-xs text-secondary mt-1">Bulan ini • 45 transaksi</p>
+          <p class="font-bold text-2xl text-foreground">{{ formatCurrency(summary.total_income) }}</p>
+          <p class="text-xs text-secondary mt-1">Bulan ini • {{ summary.income_count }} transaksi</p>
         </div>
       </div>
 
@@ -24,8 +24,8 @@
         </div>
         <div>
           <p class="text-sm text-secondary mb-1">Total Pengeluaran</p>
-          <p class="font-bold text-2xl text-foreground">Rp 52.300.000</p>
-          <p class="text-xs text-secondary mt-1">Bulan ini • 38 transaksi</p>
+          <p class="font-bold text-2xl text-foreground">{{ formatCurrency(summary.total_expense) }}</p>
+          <p class="text-xs text-secondary mt-1">Bulan ini • {{ summary.expense_count }} transaksi</p>
         </div>
       </div>
 
@@ -38,7 +38,7 @@
         </div>
         <div>
           <p class="text-sm text-secondary mb-1">Saldo Dana</p>
-          <p class="font-bold text-2xl text-foreground">Rp 125.800.000</p>
+          <p class="font-bold text-2xl text-foreground">{{ formatCurrency(summary.balance) }}</p>
           <p class="text-xs text-secondary mt-1">Per hari ini</p>
         </div>
       </div>
@@ -52,7 +52,7 @@
         </div>
         <div>
           <p class="text-sm text-secondary mb-1">Muzakki/Donatur</p>
-          <p class="font-bold text-2xl text-foreground">127</p>
+          <p class="font-bold text-2xl text-foreground">{{ summary.donor_count }}</p>
           <p class="text-xs text-secondary mt-1">Bulan ini</p>
         </div>
       </div>
@@ -63,36 +63,27 @@
         <div class="flex items-center justify-between mb-6">
           <div>
             <h3 class="font-bold text-lg">Tren Keuangan</h3>
-            <p class="text-sm text-secondary">Penerimaan vs Pengeluaran 6 bulan terakhir</p>
+            <p class="text-sm text-secondary">Penerimaan vs Pengeluaran {{ period === '6months' ? '6 bulan terakhir' : 'tahun ini' }}</p>
           </div>
-          <select class="bg-muted border-none rounded-lg px-3 py-2 text-sm font-medium focus:ring-1 focus:ring-primary outline-none cursor-pointer">
-            <option>6 Bulan Terakhir</option>
-            <option>Tahun Ini</option>
+          <select v-model="period" @change="onPeriodChange" class="bg-muted border-none rounded-lg px-3 py-2 text-sm font-medium focus:ring-1 focus:ring-primary outline-none cursor-pointer">
+            <option value="6months">6 Bulan Terakhir</option>
+            <option value="year">Tahun Ini</option>
           </select>
         </div>
-        <TrendChart />
+        <TrendChart :trend-data="trendData" :loading="loading" />
       </div>
 
       <div class="flex flex-col rounded-2xl border border-border p-6 bg-white shadow-sm">
         <h3 class="font-bold text-lg mb-2">Kategori Pengeluaran</h3>
         <p class="text-sm text-secondary mb-6">Distribusi bulan ini</p>
-        <ExpenseChart />
+        <ExpenseChart :expense-data="expenseByCategory" :loading="loading" />
         <div class="mt-6 flex flex-col gap-3">
-          <div class="flex items-center justify-between text-sm">
-            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-primary"></span><span>Mustahik</span></div>
-            <span class="font-semibold">Rp 20.9Jt</span>
-          </div>
-          <div class="flex items-center justify-between text-sm">
-            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-warning"></span><span>Operasional</span></div>
-            <span class="font-semibold">Rp 18.3Jt</span>
-          </div>
-          <div class="flex items-center justify-between text-sm">
-            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-error"></span><span>Program</span></div>
-            <span class="font-semibold">Rp 7.8Jt</span>
-          </div>
-          <div class="flex items-center justify-between text-sm">
-            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-success"></span><span>Lainnya</span></div>
-            <span class="font-semibold">Rp 5.3Jt</span>
+          <div v-for="(item, i) in expenseByCategory" :key="i" class="flex items-center justify-between text-sm">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full" :style="{ backgroundColor: ['#004b72','#FED71F','#ED6B60','#30B22D'][i] }"></span>
+              <span>{{ item.category }}</span>
+            </div>
+            <span class="font-semibold">{{ formatCurrency(item.amount) }}</span>
           </div>
         </div>
       </div>
@@ -102,7 +93,7 @@
       <div class="flex flex-col rounded-2xl border border-border p-6 bg-white shadow-sm">
         <div class="flex items-center justify-between mb-4">
           <h3 class="font-bold text-lg">Transaksi Terbaru</h3>
-          <router-link to="/income" class="text-sm text-primary hover:text-primary-hover font-medium">Lihat Semua</router-link>
+          <!-- <router-link to="/income" class="text-sm text-primary hover:text-primary-hover font-medium">Lihat Semua</router-link> -->
         </div>
         <div class="flex flex-col gap-3">
           <div v-for="trx in recentTransactions" :key="trx.id" class="flex items-center justify-between p-3 bg-muted/50 rounded-xl">
@@ -116,7 +107,9 @@
                 <p class="text-xs text-secondary">{{ trx.date }}</p>
               </div>
             </div>
-            <p class="font-bold" :class="trx.type === 'income' ? 'text-success' : 'text-error'">{{ trx.type === 'income' ? '+' : '-' }}Rp {{ trx.amount.toLocaleString() }}</p>
+            <p class="font-bold" :class="trx.type === 'income' ? 'text-success' : 'text-error'">
+              {{ trx.type === 'income' ? '+' : '-' }}{{ formatCurrency(trx.amount) }}
+            </p>
           </div>
         </div>
       </div>
@@ -129,24 +122,24 @@
               <p class="font-semibold text-sm">Zakat</p>
               <span class="text-xs font-semibold text-primary bg-primary/10 px-2 py-1 rounded-full">Bulan Ini</span>
             </div>
-            <p class="text-2xl font-bold text-primary mb-1">Rp 45.000.000</p>
-            <p class="text-xs text-secondary">Dari 85 muzakki</p>
+            <p class="text-2xl font-bold text-primary mb-1">{{ formatCurrency(ziswaf.zakat?.amount) }}</p>
+            <p class="text-xs text-secondary">Dari {{ ziswaf.zakat?.count }} muzakki</p>
           </div>
           <div class="p-4 bg-success/5 rounded-xl border border-success/20">
             <div class="flex items-center justify-between mb-2">
               <p class="font-semibold text-sm">Infaq & Sedekah</p>
               <span class="text-xs font-semibold text-success bg-success/10 px-2 py-1 rounded-full">Bulan Ini</span>
             </div>
-            <p class="text-2xl font-bold text-success mb-1">Rp 28.500.000</p>
-            <p class="text-xs text-secondary">Dari 127 donatur</p>
+            <p class="text-2xl font-bold text-success mb-1">{{ formatCurrency(ziswaf.infaq?.amount) }}</p>
+            <p class="text-xs text-secondary">Dari {{ ziswaf.infaq?.count }} donatur</p>
           </div>
           <div class="p-4 bg-warning/5 rounded-xl border border-warning/20">
             <div class="flex items-center justify-between mb-2">
               <p class="font-semibold text-sm">Wakaf</p>
               <span class="text-xs font-semibold text-warning bg-warning/10 px-2 py-1 rounded-full">Tahun Ini</span>
             </div>
-            <p class="text-2xl font-bold text-warning mb-1">Rp 125.000.000</p>
-            <p class="text-xs text-secondary">Target: Rp 150Jt (83%)</p>
+            <p class="text-2xl font-bold text-warning mb-1">{{ formatCurrency(ziswaf.wakaf?.amount) }}</p>
+            <p class="text-xs text-secondary">Target: {{ formatCurrency(ziswaf.wakaf?.target) }} ({{ ziswaf.wakaf?.target ? Math.round(ziswaf.wakaf.amount / ziswaf.wakaf.target * 100) : 0 }}%)</p>
           </div>
         </div>
       </div>
@@ -155,15 +148,28 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import { TrendingUp, TrendingDown, Wallet, Users, ArrowDownLeft, ArrowUpRight } from 'lucide-vue-next'
+import { useDashboardStore } from '@/stores/dashboard'
+import { formatCurrency } from '@/utils/helper'
 import TrendChart from '@/components/charts/TrendChart.vue'
 import ExpenseChart from '@/components/charts/ExpenseChart.vue'
 
-const recentTransactions = ref([
-  { id: 1, category: 'Zakat Fitrah', date: 'Hari ini, 10:30', amount: 2500000, type: 'income' },
-  { id: 2, category: 'Bantuan Mustahik', date: 'Kemarin, 14:20', amount: 850000, type: 'expense' },
-  { id: 3, category: 'Infaq Donatur', date: '2 hari lalu, 09:15', amount: 15000000, type: 'income' },
-  { id: 4, category: 'Operasional Kantor', date: '3 hari lalu, 11:45', amount: 1200000, type: 'expense' }
-])
+const store = useDashboardStore()
+const { data, loading } = storeToRefs(store)
+
+const summary = computed(() => data.value?.summary ?? {})
+const trendData = computed(() => data.value?.trend_data ?? [])
+const expenseByCategory = computed(() => data.value?.expense_by_category ?? [])
+const recentTransactions = computed(() => data.value?.recent_transactions ?? [])
+const ziswaf = computed(() => data.value?.ziswaf_summary ?? {})
+
+const period = ref('6months')
+
+onMounted(() => store.fetchDashboard(period.value))
+
+function onPeriodChange() {
+  store.fetchDashboard(period.value)
+}
 </script>

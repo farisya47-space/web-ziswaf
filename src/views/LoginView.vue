@@ -91,8 +91,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { Eye, EyeOff, User, Lock, AlertCircle, LogIn, CheckCircle } from 'lucide-vue-next'
 
@@ -104,6 +104,14 @@ const errorMessage = ref('')
 const isLoading = ref(false)
 const isSuccess = ref(false)
 const isShaking = ref(false)
+
+const route = useRoute()
+
+onMounted(() => {
+  if (route.query.reason === 'idle') {
+    errorMessage.value = 'Sesi Anda telah berakhir karena tidak ada aktivitas selama 90 menit'
+  }
+})
 
 async function handleLogin() {
   errorMessage.value = ''

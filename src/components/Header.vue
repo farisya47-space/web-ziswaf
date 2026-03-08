@@ -20,7 +20,7 @@
           @click="toggleUserMenu"
           class="size-10 rounded-full border border-border cursor-pointer"
         >
-          <img :src="user.avatar" class="size-10 rounded-full object-cover" />
+          <img :src="user?.avatar ?? user?.photo ?? `https://ui-avatars.com/api/?name=${user?.name}`" class="size-10 rounded-full object-cover" />
         </button>
         <div
           v-show="userMenuOpen"
@@ -49,7 +49,7 @@
             @click="toggleUserMenu"
             class="size-11 rounded-full object-cover border border-border cursor-pointer"
           >
-            <img :src="user.avatar" class="size-11 rounded-full object-cover" />
+            <img :src="user?.avatar ?? user?.photo ?? `https://ui-avatars.com/api/?name=${user?.name}`" class="size-10 rounded-full object-cover" />
           </button>
           <div
             v-show="userMenuOpen"
@@ -70,36 +70,25 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { storeToRefs } from 'pinia'
 import { Menu, LogOut } from 'lucide-vue-next'
 
 defineProps({
-  title: {
-    type: String,
-    default: 'Dashboard',
-  },
+  title: { type: String, default: 'Dashboard' },
 })
 
 const emit = defineEmits(['toggleSidebar'])
 const router = useRouter()
 const authStore = useAuthStore()
+const { user } = storeToRefs(authStore)
 
 const userMenuOpen = ref(false)
-const user = ref({
-  name: 'Admin Keuangan',
-  role: 'Administrator',
-  avatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&h=100&fit=crop',
-})
 
-const toggleSidebar = () => {
-  emit('toggleSidebar')
-}
-
-const toggleUserMenu = () => {
-  userMenuOpen.value = !userMenuOpen.value
-}
+const toggleSidebar = () => emit('toggleSidebar')
+const toggleUserMenu = () => { userMenuOpen.value = !userMenuOpen.value }
 
 const logout = async () => {
   await authStore.logout()
@@ -112,11 +101,6 @@ const handleClickOutside = (event) => {
   }
 }
 
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-})
-
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside)
-})
+onMounted(() => document.addEventListener('click', handleClickOutside))
+onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
 </script>

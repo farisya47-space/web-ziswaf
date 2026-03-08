@@ -1,43 +1,43 @@
 <template>
-  <div class="relative flex items-center justify-center" style="height: 200px; position: relative;">
-    <canvas ref="chartCanvas"></canvas>
+  <div class="relative flex items-center justify-center" style="height: 200px;">
+    <div v-if="loading" class="absolute inset-0 flex items-center justify-center animate-pulse">
+      <div class="size-40 rounded-full border-24 border-muted"></div>
+    </div>
+    <canvas v-show="!loading" ref="chartCanvas"></canvas>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { Chart, registerables } from 'chart.js'
 
 Chart.register(...registerables)
 
+const props = defineProps({
+  expenseData: { type: Array, default: () => [] },
+  loading: { type: Boolean, default: false }
+})
 const chartCanvas = ref(null)
+let chartInstance = null
 
-onMounted(() => {
-  new Chart(chartCanvas.value, {
+function buildChart() {
+  if (chartInstance) chartInstance.destroy()
+  chartInstance = new Chart(chartCanvas.value, {
     type: 'doughnut',
     data: {
-      labels: ['Mustahik', 'Operasional', 'Program', 'Lainnya'],
-      datasets: [{
-        data: [20.9, 18.3, 7.8, 5.3],
-        backgroundColor: ['#004b72', '#FED71F', '#ED6B60', '#30B22D']
-      }]
+      labels: props.expenseData.map(d => d.category),
+      datasets: [{ data: props.expenseData.map(d => d.amount / 1_000_000), backgroundColor: ['#004b72', '#FED71F', '#ED6B60', '#30B22D'] }]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: false,
+      responsive: true, maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: (context) => {
-              const total = context.dataset.data.reduce((a, b) => a + b, 0)
-              const percentage = ((context.parsed / total) * 100).toFixed(1)
-              return context.label + ': Rp ' + context.parsed + ' Juta (' + percentage + '%)'
-            }
-          }
-        }
+        tooltip: { callbacks: { label: (ctx) => { const total = ctx.dataset.data.reduce((a, b) => a + b, 0); return ctx.label + ': Rp ' + ctx.parsed.toFixed(1) + ' Juta (' + ((ctx.parsed / total) * 100).toFixed(1) + '%)' } } }
       }
     }
   })
-})
+}
+
+onMounted(() => { if (props.expenseData.length) buildChart() })
+watch(() => props.expenseData, (val) => { if (val.length) buildChart() }, { deep: true })
 </script>

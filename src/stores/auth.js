@@ -10,7 +10,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function login(credentials) {
     const response = await api.post('/login', credentials)
-    token.value = response.data.access_token
+    token.value = response.data.data.access_token
     localStorage.setItem('token', token.value)
     await fetchProfile()
     return true
@@ -18,7 +18,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function fetchProfile() {
     const response = await api.get('/profile')
-    user.value = response.data.user
+    // console.log('profile response:', response.data) // check this
+    user.value = response.data.user ?? response.data.data ?? response.data
     localStorage.setItem('user', JSON.stringify(user.value))
   }
 
