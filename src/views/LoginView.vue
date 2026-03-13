@@ -84,7 +84,7 @@
       </div>
 
       <p class="text-center text-sm text-secondary mt-6">
-        © 2026 Madarijus Salikin. All rights reserved.
+        © 2026 Madarijus Salikin. All rights reserved. · v{{ version }}
       </p>
     </div>
   </div>
@@ -95,6 +95,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { Eye, EyeOff, User, Lock, AlertCircle, LogIn, CheckCircle } from 'lucide-vue-next'
+import { version } from '../../package.json'
 
 const router = useRouter()
 const authStore = useAuthStore()
