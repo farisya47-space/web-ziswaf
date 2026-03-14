@@ -44,15 +44,13 @@
                 <p v-if="profileErrors.name" class="text-xs text-error">{{ profileErrors.name }}</p>
               </div>
               <div class="flex flex-col gap-2">
-                <label class="text-sm font-semibold text-foreground">Username <span class="text-error">*</span></label>
+                <label class="text-sm font-semibold text-foreground">Username</label>
                 <input
                   :value="profile.username"
-                  @input="profile.username = $event.target.value.replace(/\s/g, '')"
                   type="text"
-                  class="w-full px-4 py-3 rounded-xl border focus:ring-1 focus:ring-primary outline-none bg-white text-sm"
-                  :class="profileErrors.username ? 'border-error' : 'border-border'"
+                  readonly
+                  class="w-full px-4 py-3 rounded-xl border border-border bg-muted text-secondary text-sm cursor-not-allowed"
                 >
-                <p v-if="profileErrors.username" class="text-xs text-error">{{ profileErrors.username }}</p>
               </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -96,32 +94,32 @@
               <div class="flex flex-col gap-2">
                 <label class="text-sm font-semibold text-foreground">Kata Sandi Lama <span class="text-error">*</span></label>
                 <div class="relative">
-                  <input v-model="passwordForm.oldPassword" :type="showOldPassword ? 'text' : 'password'" placeholder="Masukkan kata sandi lama" class="w-full px-4 py-3 rounded-xl border focus:ring-1 focus:ring-primary outline-none bg-white text-sm pr-12" :class="passwordErrors.old_password ? 'border-error' : 'border-border'">
+                  <input v-model="passwordForm.oldPassword" :type="showOldPassword ? 'text' : 'password'" placeholder="Masukkan kata sandi lama" class="w-full px-4 py-3 rounded-xl border focus:ring-1 focus:ring-primary outline-none bg-white text-sm pr-12" :class="passwordErrors.current_password ? 'border-error' : 'border-border'">
                   <button type="button" @click="showOldPassword = !showOldPassword" class="absolute right-4 top-1/2 -translate-y-1/2 text-secondary hover:text-foreground transition-colors">
                     <EyeOff v-if="showOldPassword" :size="20" /><Eye v-else :size="20" />
                   </button>
                 </div>
-                <p v-if="passwordErrors.old_password" class="text-xs text-error">{{ passwordErrors.old_password }}</p>
+                <p v-if="passwordErrors.current_password" class="text-xs text-error">{{ passwordErrors.current_password }}</p>
               </div>
               <div class="flex flex-col gap-2">
                 <label class="text-sm font-semibold text-foreground">Kata Sandi Baru <span class="text-error">*</span></label>
                 <div class="relative">
-                  <input v-model="passwordForm.newPassword" :type="showNewPassword ? 'text' : 'password'" placeholder="Masukkan kata sandi baru" class="w-full px-4 py-3 rounded-xl border focus:ring-1 focus:ring-primary outline-none bg-white text-sm pr-12" :class="passwordErrors.new_password ? 'border-error' : 'border-border'">
+                  <input v-model="passwordForm.newPassword" :type="showNewPassword ? 'text' : 'password'" placeholder="Masukkan kata sandi baru" class="w-full px-4 py-3 rounded-xl border focus:ring-1 focus:ring-primary outline-none bg-white text-sm pr-12" :class="passwordErrors.password ? 'border-error' : 'border-border'">
                   <button type="button" @click="showNewPassword = !showNewPassword" class="absolute right-4 top-1/2 -translate-y-1/2 text-secondary hover:text-foreground transition-colors">
                     <EyeOff v-if="showNewPassword" :size="20" /><Eye v-else :size="20" />
                   </button>
                 </div>
-                <p v-if="passwordErrors.new_password" class="text-xs text-error">{{ passwordErrors.new_password }}</p>
+                <p v-if="passwordErrors.password" class="text-xs text-error">{{ passwordErrors.password }}</p>
               </div>
               <div class="flex flex-col gap-2">
                 <label class="text-sm font-semibold text-foreground">Konfirmasi Kata Sandi Baru <span class="text-error">*</span></label>
                 <div class="relative">
-                  <input v-model="passwordForm.confirmPassword" :type="showConfirmPassword ? 'text' : 'password'" placeholder="Masukkan ulang kata sandi baru" class="w-full px-4 py-3 rounded-xl border focus:ring-1 focus:ring-primary outline-none bg-white text-sm pr-12" :class="passwordErrors.confirm_password ? 'border-error' : 'border-border'">
+                  <input v-model="passwordForm.confirmPassword" :type="showConfirmPassword ? 'text' : 'password'" placeholder="Masukkan ulang kata sandi baru" class="w-full px-4 py-3 rounded-xl border focus:ring-1 focus:ring-primary outline-none bg-white text-sm pr-12" :class="passwordErrors.password_confirmation ? 'border-error' : 'border-border'">
                   <button type="button" @click="showConfirmPassword = !showConfirmPassword" class="absolute right-4 top-1/2 -translate-y-1/2 text-secondary hover:text-foreground transition-colors">
                     <EyeOff v-if="showConfirmPassword" :size="20" /><Eye v-else :size="20" />
                   </button>
                 </div>
-                <p v-if="passwordErrors.confirm_password" class="text-xs text-error">{{ passwordErrors.confirm_password }}</p>
+                <p v-if="passwordErrors.password_confirmation" class="text-xs text-error">{{ passwordErrors.password_confirmation }}</p>
               </div>
               <div class="flex items-center justify-end gap-4 mt-4 pt-6 border-t border-border">
                 <button type="button" @click="passwordForm = { oldPassword: '', newPassword: '', confirmPassword: '' }; passwordErrors = {}" class="px-6 py-2.5 rounded-xl font-bold text-secondary hover:bg-muted transition-colors text-sm">Batal</button>
@@ -143,6 +141,9 @@ import { ref, onMounted } from 'vue'
 import { User, Lock, Info, Camera, Eye, EyeOff, Save, CheckCircle, X } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import api from '@/utils/axios'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const authStore = useAuthStore()
 
@@ -163,7 +164,7 @@ const showNewPassword = ref(false)
 const showConfirmPassword = ref(false)
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png']
-const MAX_SIZE = 2 * 1024 * 1024 // 2MB
+const MAX_SIZE = 2 * 1024 * 1024
 
 function showToast(message, type = 'success') {
   toast.value = { message, type }
@@ -176,17 +177,11 @@ function getApiErrors(error) {
 }
 
 onMounted(async () => {
-  // Use cached user immediately to populate form
-  if (authStore.user) {
-    populateForm(authStore.user)
-  }
-  // Then fetch fresh data from API
+  if (authStore.user) populateForm(authStore.user)
   try {
     await authStore.fetchProfile()
     populateForm(authStore.user)
-  } catch {
-    // If fetch fails, cached data is still shown
-  }
+  } catch {}
 })
 
 function populateForm(user) {
@@ -203,7 +198,6 @@ function populateForm(user) {
 function handlePhotoChange(event) {
   const file = event.target.files[0]
   if (!file) return
-
   if (!ALLOWED_TYPES.includes(file.type)) {
     profileErrors.value.photo = 'Format file harus PNG, JPG, atau JPEG'
     event.target.value = ''
@@ -214,7 +208,6 @@ function handlePhotoChange(event) {
     event.target.value = ''
     return
   }
-
   profileErrors.value.photo = ''
   photoFile.value = file
   profilePhoto.value = URL.createObjectURL(file)
@@ -223,7 +216,6 @@ function handlePhotoChange(event) {
 function validateProfile() {
   const errs = {}
   if (!profile.value.name.trim()) errs.name = 'Nama lengkap wajib diisi'
-  if (!profile.value.username.trim()) errs.username = 'Username wajib diisi'
   profileErrors.value = errs
   return !Object.keys(errs).length
 }
@@ -253,10 +245,7 @@ async function saveProfile() {
     formData.append('email', profile.value.email)
     formData.append('phone', profile.value.phone)
     if (photoFile.value) formData.append('photo', photoFile.value)
-
-    const { data } = await api.post('/profile/update', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
+    await api.post('/profile/update', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
     await authStore.fetchProfile()
     showToast('Profil berhasil diperbarui')
   } catch (error) {
@@ -282,7 +271,10 @@ async function changePassword() {
       password_confirmation: passwordForm.value.confirmPassword,
     })
     showToast('Kata sandi berhasil diubah')
-    setTimeout(() => authStore.logout(), 1500)
+    setTimeout(async () => {
+      await authStore.logout()
+      router.push('/login')
+    }, 1500)
   } catch (error) {
     const res = error.response?.data
     if (error.response?.status === 422 && res?.errors) {
