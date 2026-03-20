@@ -85,6 +85,7 @@
                     <button @click="deletingId = null" class="px-2.5 py-1 text-xs font-medium bg-muted text-secondary rounded-lg hover:bg-border">Batal</button>
                   </div>
                   <div v-else class="flex items-center justify-end gap-2">
+                    <button @click="showInvoice(trx)" class="p-2 text-secondary hover:text-primary hover:bg-primary/5 rounded-lg transition-colors" title="Lihat Invoice"><FileText :size="16" /></button>
                     <button @click="editTransaction(trx)" class="p-2 text-secondary hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"><Pencil :size="16" /></button>
                     <button @click="deletingId = trx.id" class="p-2 text-secondary hover:text-error hover:bg-error/5 rounded-lg transition-colors"><Trash2 :size="16" /></button>
                   </div>
@@ -125,6 +126,7 @@
               <button @click="deletingId = null" class="px-2.5 py-1 text-xs font-medium bg-muted text-secondary rounded-lg">Batal</button>
             </div>
             <div v-else class="flex items-center gap-2 shrink-0">
+              <button @click="showInvoice(trx)" class="p-2 text-secondary hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"><FileText :size="16" /></button>
               <button @click="editTransaction(trx)" class="p-2 text-secondary hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"><Pencil :size="16" /></button>
               <button @click="deletingId = trx.id" class="p-2 text-secondary hover:text-error hover:bg-error/5 rounded-lg transition-colors"><Trash2 :size="16" /></button>
             </div>
@@ -195,15 +197,90 @@
       </div>
     </div>
   </div>
+
+  <!-- Invoice Modal -->
+  <Teleport to="body">
+    <div v-if="invoiceData" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" @click.self="invoiceData = null">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between p-4 border-b border-border">
+          <h3 class="font-bold text-base">Invoice Pemasukan</h3>
+          <div class="flex items-center gap-2">
+            <button @click="exportInvoicePDF" :disabled="isExporting" class="bg-error text-white rounded-xl px-4 py-2 font-bold text-sm flex items-center gap-2 hover:bg-error/90 disabled:opacity-70">
+              <Download :size="14" /><span>{{ isExporting ? 'Mengekspor...' : 'Export PDF' }}</span>
+            </button>
+            <button @click="invoiceData = null" class="p-2 hover:bg-muted rounded-lg"><X :size="16" /></button>
+          </div>
+        </div>
+        <div ref="invoiceRef" class="p-8 bg-white">
+          <div class="text-center mb-6">
+            <img src="/logo-yayasan.png" alt="Logo" class="w-16 h-16 mx-auto mb-3 object-contain">
+            <h1 class="text-lg font-bold">MADARIJUS SALIKIN</h1>
+            <p class="text-xs text-secondary">Jl. Raya Masjid No. 45, Bandung</p>
+            <p class="text-xs text-secondary">Telp/Whatsapp: 08112070400 | Instagram: @mdsalikin_bdg</p>
+            <div class="border-b-2 border-primary mt-3"></div>
+          </div>
+          <div class="text-center mb-6">
+            <h2 class="text-base font-bold tracking-widest">BUKTI PENERIMAAN DANA</h2>
+          </div>
+          <div class="mb-6 text-sm">
+            <table class="w-full">
+              <tbody>
+                <tr>
+                  <td class="py-1 text-secondary w-40">No. Transaksi</td>
+                  <td class="py-1 font-medium">: {{ invoiceData.transaction_number }}</td>
+                </tr>
+                <tr>
+                  <td class="py-1 text-secondary">Tanggal</td>
+                  <td class="py-1">: {{ formatDate(invoiceData.date) }}</td>
+                </tr>
+                <tr>
+                  <td class="py-1 text-secondary">Kategori</td>
+                  <td class="py-1">: {{ invoiceData.category?.name }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <table class="w-full text-sm border-collapse mb-6">
+            <thead>
+              <tr class="bg-primary text-white">
+                <th class="p-3 border border-border text-left">Keterangan</th>
+                <th class="p-3 border border-border text-right">Nominal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="p-3 border border-border">{{ invoiceData.description || 'Penerimaan Dana ' + invoiceData.category?.name }}</td>
+                <td class="p-3 border border-border text-right font-bold text-success">{{ formatCurrency(invoiceData.amount) }}</td>
+              </tr>
+              <tr class="bg-muted">
+                <td class="p-3 border border-border font-bold">Total</td>
+                <td class="p-3 border border-border text-right font-bold text-primary">{{ formatCurrency(invoiceData.amount) }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="text-right mt-10">
+            <p class="text-xs text-secondary">Bandung, {{ formatDate(new Date()) }}</p>
+            <p class="text-xs font-semibold mt-1 mb-16">Pimpinan Yayasan</p>
+            <div class="inline-block border-t border-foreground pt-2">
+              <p class="text-xs font-bold">Ustadz Anshorudin Ramdhani</p>
+              <p class="text-xs text-secondary">Ketua Yayasan</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useTransactionStore } from '@/stores/transaction'
 import { useCategoryStore } from '@/stores/category'
 import { formatCurrency, formatDate, formatAmount } from '@/utils/helper'
-import { Search, Plus, Pencil, Trash2, Save, ChevronLeft, ChevronRight, X, CheckCircle } from 'lucide-vue-next'
+import { Search, Plus, Pencil, Trash2, Save, ChevronLeft, ChevronRight, X, CheckCircle, FileText, Download } from 'lucide-vue-next'
+import html2canvas from 'html2canvas'
+import jsPDF from 'jspdf'
 
 const store = useTransactionStore()
 const categoryStore = useCategoryStore()
@@ -221,7 +298,10 @@ const currentPage = ref(1)
 const perPage = 10
 const displayAmount = ref('')
 const loadError = ref('')
-const toastType = ref('success') // 'success' | 'error'
+const toastType = ref('success')
+const invoiceData = ref(null)
+const invoiceRef = ref(null)
+const isExporting = ref(false)
 
 const incomeCategories = computed(() => categoryStore.categories.filter(c => c.type === 'income'))
 
@@ -277,6 +357,26 @@ function showToast(message, type = 'success') {
   toastType.value = type
   successMessage.value = message
   setTimeout(() => successMessage.value = '', 3000)
+}
+
+function showInvoice(trx) {
+  invoiceData.value = trx
+}
+
+async function exportInvoicePDF() {
+  isExporting.value = true
+  try {
+    const canvas = await html2canvas(invoiceRef.value, { scale: 2 })
+    const imgData = canvas.toDataURL('image/png')
+    const pdf = new jsPDF('p', 'mm', 'a4')
+    const pdfWidth = pdf.internal.pageSize.getWidth()
+    const pdfHeight = pdf.internal.pageSize.getHeight()
+    const ratio = Math.min(pdfWidth / canvas.width, pdfHeight / canvas.height)
+    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width * ratio, canvas.height * ratio)
+    pdf.save(`Invoice-${invoiceData.value.transaction_number}.pdf`)
+  } finally {
+    isExporting.value = false
+  }
 }
 
 async function loadTransactions() {
