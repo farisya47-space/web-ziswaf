@@ -200,8 +200,8 @@
 
   <!-- Invoice Modal -->
   <Teleport to="body">
-    <div v-if="invoiceData" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" @click.self="invoiceData = null">
-      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+    <div v-if="invoiceData" class="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 overflow-y-auto" @click.self="invoiceData = null">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg my-auto">
         <div class="flex items-center justify-between p-4 border-b border-border">
           <h3 class="font-bold text-base">Invoice Pemasukan</h3>
           <div class="flex items-center gap-2">
