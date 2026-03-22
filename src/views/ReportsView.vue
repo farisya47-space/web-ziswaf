@@ -123,9 +123,9 @@
 
         <div class="text-right mt-12">
           <p class="text-xs text-secondary">Bandung, {{ formatDate(new Date()) }}</p>
-          <p class="text-xs font-semibold mt-1 mb-20">Pimpinan Yayasan</p>
+          <p class="text-xs font-semibold mt-1 mb-20">Ketua Yayasan</p>
           <div class="inline-block border-t border-foreground pt-2">
-            <p class="text-xs font-bold">Ustadz Anshorudin Ramdhani</p>
+            <p class="text-xs font-bold">H. Eris Ma'ruf</p>
             <p class="text-xs text-secondary">Ketua Yayasan</p>
           </div>
         </div>
