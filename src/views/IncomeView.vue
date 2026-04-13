@@ -215,7 +215,7 @@
           <div class="text-center mb-6">
             <img src="/logo-yayasan.png" alt="Logo" class="w-16 h-16 mx-auto mb-3 object-contain">
             <h1 class="text-lg font-bold">MADARIJUS SALIKIN</h1>
-            <p class="text-xs text-secondary">Jl. Raya Masjid No. 45, Bandung</p>
+            <p class="text-xs text-secondary">Jl. Kiarasari Permai V No.5, Bandung</p>
             <p class="text-xs text-secondary">Telp/Whatsapp: 08112070400 | Instagram: @mdsalikin_bdg</p>
             <div class="border-b-2 border-primary mt-3"></div>
           </div>
@@ -366,13 +366,19 @@ function showInvoice(trx) {
 async function exportInvoicePDF() {
   isExporting.value = true
   try {
-    const canvas = await html2canvas(invoiceRef.value, { scale: 2 })
+    const el = invoiceRef.value
+    const clone = el.cloneNode(true)
+    clone.style.cssText = 'position:fixed;top:0;left:0;width:794px;background:white;z-index:-9999;padding:32px;'
+    document.body.appendChild(clone)
+
+    const canvas = await html2canvas(clone, { scale: 2, useCORS: true, width: 794 })
+    document.body.removeChild(clone)
+
     const imgData = canvas.toDataURL('image/png')
     const pdf = new jsPDF('p', 'mm', 'a4')
     const pdfWidth = pdf.internal.pageSize.getWidth()
-    const pdfHeight = pdf.internal.pageSize.getHeight()
-    const ratio = Math.min(pdfWidth / canvas.width, pdfHeight / canvas.height)
-    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width * ratio, canvas.height * ratio)
+    const imgHeight = (canvas.height * pdfWidth) / canvas.width
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight)
     pdf.save(`Invoice-${invoiceData.value.transaction_number}.pdf`)
   } finally {
     isExporting.value = false

@@ -47,7 +47,7 @@
         <div class="text-center mb-8">
           <img src="/logo-yayasan.png" alt="Logo" class="w-20 h-20 mx-auto mb-4 object-contain">
           <h1 class="text-xl font-bold mb-2">MADARIJUS SALIKIN</h1>
-          <p class="text-xs text-secondary">Jl. Raya Masjid No. 45, Bandung</p>
+          <p class="text-xs text-secondary">Jl. Kiarasari Permai V No.5, Bandung</p>
           <p class="text-xs text-secondary">Telp/Whatsapp: 08112070400 | Instagram: @mdsalikin_bdg</p>
           <div class="border-b-2 border-primary mt-4"></div>
         </div>
@@ -149,8 +149,6 @@ const { report, loading } = storeToRefs(store)
 const now = new Date()
 const startDate = ref(new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()).toISOString().split('T')[0])
 const endDate = ref(now.toISOString().split('T')[0])
-console.log('Initial Start Date:', startDate.value)
-console.log('Initial End Date:', endDate.value)
 const showReport = ref(false)
 const reportContent = ref(null)
 const error = ref('')
