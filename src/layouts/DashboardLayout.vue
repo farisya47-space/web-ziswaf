@@ -6,7 +6,7 @@
       class="fixed inset-0 bg-black/80 z-40 lg:hidden"
     ></div>
     <Sidebar :isMobileOpen="sidebarOpen" @close="closeSidebar" />
-    <main class="flex-1 lg:ml-[280px] flex flex-col bg-white min-h-screen">
+    <main class="flex-1 lg:ml-[280px] flex flex-col bg-white min-h-screen overflow-x-hidden max-w-full">
       <Header :title="pageTitle" @toggleSidebar="toggleSidebar" />
       <div class="flex-1 overflow-y-auto">
         <slot />

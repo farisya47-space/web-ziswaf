@@ -1,5 +1,5 @@
 <template>
-  <div class="flex-1 p-5 md:p-8">
+  <div class="flex-1 p-5 md:p-8 overflow-x-hidden">
     <Transition enter-from-class="opacity-0 translate-y-2" enter-active-class="transition-all duration-300" leave-to-class="opacity-0 translate-y-2" leave-active-class="transition-all duration-300">
       <div v-if="successMessage" class="fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl shadow-lg text-sm font-medium flex items-center gap-2 text-white"
         :style="{ backgroundColor: toastType === 'error' ? 'var(--color-error)' : 'var(--color-success)' }">
@@ -134,9 +134,12 @@
         </div>
         <div class="p-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-secondary">
           <p>{{ paginationInfo }}</p>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 flex-wrap justify-center">
             <button @click="changePage(currentPage - 1)" :disabled="currentPage === 1" class="p-2 border border-border rounded-lg hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"><ChevronLeft :size="16" /></button>
-            <button v-for="page in totalPages" :key="page" @click="changePage(page)" :class="page === currentPage ? 'bg-primary text-white' : 'hover:bg-muted'" class="px-3 py-1.5 rounded-lg font-medium">{{ page }}</button>
+            <template v-for="page in paginationPages" :key="page">
+              <span v-if="page === '...'" class="px-2 text-secondary">...</span>
+              <button v-else @click="changePage(page)" :class="page === currentPage ? 'bg-primary text-white' : 'hover:bg-muted'" class="px-3 py-1.5 rounded-lg font-medium">{{ page }}</button>
+            </template>
             <button @click="changePage(currentPage + 1)" :disabled="currentPage === totalPages" class="p-2 border border-border rounded-lg hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"><ChevronRight :size="16" /></button>
           </div>
         </div>
@@ -258,13 +261,26 @@
               </tr>
             </tbody>
           </table>
-          <div class="text-right mt-10">
-            <p class="text-xs text-secondary">Bandung, {{ formatDate(new Date()) }}</p>
-            <p class="text-xs font-semibold mt-1 mb-16">Ketua Yayasan</p>
-            <div class="inline-block border-t border-foreground pt-2">
-              <p class="text-xs font-bold">H. Eris Ma'ruf</p>
-              <p class="text-xs text-secondary">Ketua Yayasan</p>
+          <div class="mt-10">
+            <p class="text-xs text-secondary text-right">Bandung, {{ formatDate(new Date()) }}</p>
+            <div class="flex justify-between mt-4">
+              <div class="text-center">
+                <p class="text-xs font-semibold mb-16">Muzakki / Donatur</p>
+                <div class="inline-block pt-2">
+                  <p class="text-xs font-bold">{{ invoiceData.donate_name || '.........................' }}</p>
+                </div>
+              </div>
+              <div class="text-center">
+                <p class="text-xs font-semibold mb-16">Bendahara</p>
+                <div class="inline-block pt-2">
+                  <p class="text-xs font-bold">Ferry Ferdiansyah</p>
+                </div>
+              </div>
             </div>
+          </div>
+          <div class="text-center mt-4 pt-4">
+            <p class="text-xs text-secondary">اللّهمّ صلّ عليك — جزاك اللّه خيرا</p>
+            <p class="text-xs text-secondary italic">"Semoga Allah membalas dengan yang lebih baik"</p>
           </div>
         </div>
       </div>
@@ -306,6 +322,20 @@ const isExporting = ref(false)
 const incomeCategories = computed(() => categoryStore.categories.filter(c => c.type === 'income'))
 
 const totalPages = computed(() => meta.value?.last_page ?? 1)
+const paginationPages = computed(() => {
+  const total = totalPages.value
+  const current = currentPage.value
+  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1)
+  const pages = []
+  pages.push(1)
+  if (current > 3) pages.push('...')
+  for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
+    pages.push(i)
+  }
+  if (current < total - 2) pages.push('...')
+  pages.push(total)
+  return pages
+})
 const paginationInfo = computed(() => {
   const { from, to, total } = meta.value ?? {}
   return from ? `Menampilkan ${from}-${to} dari ${total} transaksi` : ''
@@ -371,14 +401,14 @@ async function exportInvoicePDF() {
     clone.style.cssText = 'position:fixed;top:0;left:0;width:794px;background:white;z-index:-9999;padding:32px;'
     document.body.appendChild(clone)
 
-    const canvas = await html2canvas(clone, { scale: 2, useCORS: true, width: 794 })
+    const canvas = await html2canvas(clone, { scale: 1.5, useCORS: true, width: 794 })
     document.body.removeChild(clone)
 
-    const imgData = canvas.toDataURL('image/png')
-    const pdf = new jsPDF('p', 'mm', 'a4')
+    const imgData = canvas.toDataURL('image/jpeg', 0.7)
+    const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true })
     const pdfWidth = pdf.internal.pageSize.getWidth()
     const imgHeight = (canvas.height * pdfWidth) / canvas.width
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight)
+    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, imgHeight)
     pdf.save(`Invoice-${invoiceData.value.transaction_number}.pdf`)
   } finally {
     isExporting.value = false

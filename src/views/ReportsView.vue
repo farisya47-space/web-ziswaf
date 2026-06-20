@@ -123,10 +123,9 @@
 
         <div class="text-right mt-12">
           <p class="text-xs text-secondary">Bandung, {{ formatDate(new Date()) }}</p>
-          <p class="text-xs font-semibold mt-1 mb-20">Ketua Yayasan</p>
-          <div class="inline-block border-t border-foreground pt-2">
-            <p class="text-xs font-bold">H. Eris Ma'ruf</p>
-            <p class="text-xs text-secondary">Ketua Yayasan</p>
+          <p class="text-xs font-semibold mt-1 mb-20">Bendahara</p>
+          <div class="inline-block pt-2">
+            <p class="text-xs font-bold">Ferry Ferdiansyah</p>
           </div>
         </div>
       </div>
@@ -179,13 +178,12 @@ const generateReport = async () => {
 }
 
 const exportPDF = async () => {
-  const canvas = await html2canvas(reportContent.value, { scale: 2 })
-  const imgData = canvas.toDataURL('image/png')
-  const pdf = new jsPDF('p', 'mm', 'a4')
-  const pdfWidth = pdf.internal.pageSize.getWidth()
-  const pdfHeight = pdf.internal.pageSize.getHeight()
-  const ratio = Math.min(pdfWidth / canvas.width, pdfHeight / canvas.height)
-  pdf.addImage(imgData, 'PNG', 0, 0, canvas.width * ratio, canvas.height * ratio)
+  const canvas = await html2canvas(reportContent.value, { scale: 1.5, useCORS: true })
+  const imgData = canvas.toDataURL('image/jpeg', 0.7)
+  const pdfWidth = 210
+  const imgHeight = (canvas.height * pdfWidth) / canvas.width
+  const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: [pdfWidth, imgHeight], compress: true })
+  pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, imgHeight)
   pdf.save(`Laporan-Keuangan_${startDate.value}_${endDate.value}.pdf`)
 }
 </script>
